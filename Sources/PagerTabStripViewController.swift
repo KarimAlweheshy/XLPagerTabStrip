@@ -63,7 +63,7 @@ open class PagerTabStripViewController: UIViewController, UIScrollViewDelegate {
     open private(set) var preCurrentIndex = 0 // used *only* to store the index to which move when the pager becomes visible
 
     open var pageWidth: CGFloat {
-        return containerView.bounds.width
+        return containerView.frame.width
     }
 
     open var scrollPercentage: CGFloat {
@@ -89,7 +89,7 @@ open class PagerTabStripViewController: UIViewController, UIScrollViewDelegate {
             let containerView = UIScrollView(frame: CGRect(x: 0, y: 0, width: view.bounds.width, height: view.bounds.height))
             containerView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
             return containerView
-        }()
+            }()
         containerView = conteinerViewAux
         if containerView.superview == nil {
             view.addSubview(containerView)
@@ -119,7 +119,7 @@ open class PagerTabStripViewController: UIViewController, UIScrollViewDelegate {
 
     override open func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
-        lastSize = containerView.bounds.size
+        lastSize = containerView.frame.size
         updateIfNeeded()
         let needToUpdateCurrentChild = preCurrentIndex != currentIndex
         if needToUpdateCurrentChild {
@@ -185,7 +185,7 @@ open class PagerTabStripViewController: UIViewController, UIScrollViewDelegate {
     // MARK: - Helpers
 
     open func updateIfNeeded() {
-        if isViewLoaded && !lastSize.equalTo(containerView.bounds.size) {
+        if isViewLoaded && !lastSize.equalTo(containerView.frame.size) {
             updateContent()
         }
     }
@@ -195,11 +195,11 @@ open class PagerTabStripViewController: UIViewController, UIScrollViewDelegate {
     }
 
     open func pageOffsetForChild(at index: Int) -> CGFloat {
-        return CGFloat(index) * containerView.bounds.width
+        return CGFloat(index) * containerView.frame.width
     }
 
     open func offsetForChild(at index: Int) -> CGFloat {
-        return (CGFloat(index) * containerView.bounds.width) + ((containerView.bounds.width - view.bounds.width) * 0.5)
+        return CGFloat(index) * containerView.frame.width //+ ((view.bounds.width - containerView.frame.width) * 0.5)
     }
 
     open func offsetForChild(viewController: UIViewController) throws -> CGFloat {
@@ -229,25 +229,25 @@ open class PagerTabStripViewController: UIViewController, UIScrollViewDelegate {
     }
 
     open func updateContent() {
-        if lastSize.width != containerView.bounds.size.width {
-            lastSize = containerView.bounds.size
+        if lastSize.width != containerView.frame.size.width {
+            lastSize = containerView.frame.size
             containerView.contentOffset = CGPoint(x: pageOffsetForChild(at: currentIndex), y: 0)
         }
-        lastSize = containerView.bounds.size
+        lastSize = containerView.frame.size
 
         let pagerViewControllers = pagerTabStripChildViewControllersForScrolling ?? viewControllers
-        containerView.contentSize = CGSize(width: containerView.bounds.width * CGFloat(pagerViewControllers.count), height: containerView.contentSize.height)
+        containerView.contentSize = CGSize(width: containerView.frame.width * CGFloat(pagerViewControllers.count), height: containerView.contentSize.height)
 
         for (index, childController) in pagerViewControllers.enumerated() {
             let pageOffsetForChild = self.pageOffsetForChild(at: index)
-            if abs(containerView.contentOffset.x - pageOffsetForChild) < containerView.bounds.width {
+            if abs(containerView.contentOffset.x - pageOffsetForChild) < containerView.frame.width {
                 if childController.parent != nil {
-                    childController.view.frame = CGRect(x: offsetForChild(at: index), y: 0, width: view.bounds.width, height: containerView.bounds.height)
+                    childController.view.frame = CGRect(x: offsetForChild(at: index), y: 0, width: containerView.frame.width, height: containerView.frame.height)
                     childController.view.autoresizingMask = [.flexibleHeight, .flexibleWidth]
                 } else {
                     childController.beginAppearanceTransition(true, animated: false)
                     addChild(childController)
-                    childController.view.frame = CGRect(x: offsetForChild(at: index), y: 0, width: view.bounds.width, height: containerView.bounds.height)
+                    childController.view.frame = CGRect(x: offsetForChild(at: index), y: 0, width: containerView.frame.width, height: containerView.frame.height)
                     childController.view.autoresizingMask = [.flexibleHeight, .flexibleWidth]
                     containerView.addSubview(childController.view)
                     childController.didMove(toParent: self)
@@ -290,7 +290,7 @@ open class PagerTabStripViewController: UIViewController, UIScrollViewDelegate {
             childController.endAppearanceTransition()
         }
         reloadViewControllers()
-        containerView.contentSize = CGSize(width: containerView.bounds.width * CGFloat(viewControllers.count), height: containerView.contentSize.height)
+        containerView.contentSize = CGSize(width: containerView.frame.width * CGFloat(viewControllers.count), height: containerView.contentSize.height)
         if currentIndex >= viewControllers.count {
             currentIndex = viewControllers.count - 1
         }
